@@ -1,29 +1,34 @@
 import { getPhotographerById } from "../pages/photographerPage.js";
 
 export const displayTotalLikes = async () => {
-    const { medias } = await getPhotographerById();
+    const { medias, photographer } = await getPhotographerById();
     const allBtnLike = document.querySelectorAll(".btn_like");
-    const likesElement = document.querySelector(".photographer_likes_count");
-
-    const updateTotalLikes = () => {
-        const totalLikes = medias.reduce((acc, media) => acc + media.likes, 0);
-        likesElement.textContent = `${totalLikes}`;
-    };
-
-    updateTotalLikes();
+    const totalLikesElement = document.querySelector(".photographer_likes_count");
+    let totalLikes = 0;
 
     allBtnLike.forEach(btn => {
+        const media = medias.find(media => media.id == btn.dataset.id);
+        const localStorageKey = 'p' + photographer.id + 'm' + media.id + '_likes';
+        const mediaTotalLikes = parseInt((localStorage.getItem(localStorageKey) != null ? localStorage.getItem(localStorageKey) : media.likes));
+
+        const likesElement = btn.previousElementSibling;
+        likesElement.textContent = mediaTotalLikes;
+
+        totalLikes = totalLikes + mediaTotalLikes;
+
         btn.addEventListener("click", () => {
-            const media = medias.find(media => media.id == btn.dataset.id);
+            if (!localStorage.getItem(localStorageKey)) {
+                const likes = mediaTotalLikes + 1;
 
-            !btn.classList.contains("liked") ? media.likes++ : media.likes--;
+                localStorage.setItem(localStorageKey, likes);
 
-            btn.classList.toggle("liked");
-
-            const likesElement = btn.previousElementSibling;
-            likesElement.textContent = `${media.likes}`;
-
-            updateTotalLikes();
-        });
+                likesElement.textContent = likes;
+                totalLikes = totalLikes + 1;
+                totalLikesElement.textContent = totalLikes;
+            }
+        })
     });
+
+    totalLikesElement.textContent = totalLikes;
 };
+﻿
